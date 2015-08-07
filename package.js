@@ -4,6 +4,7 @@ Package.describe({
     name: 'pcuci:autoform-select-uncheckable-radio',
     summary: 'Radio buttons that can be unselected',
     version: '0.0.1',
+    github: 'https://github.com/pcuci/autoform_select_uncheckable_radio.git'
 });
 
 Package.onUse(function(api) {
