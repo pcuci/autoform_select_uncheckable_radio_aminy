@@ -4,7 +4,7 @@ Ever wanted to undo a radio button selection inside a form? I mean really undo, 
 Now you can!
 
 ### Note
-Must mark the field as optional
+Field must be `optional: true` - obviously!
 
 ```coffeescript
 @radioOptions = ["opt1", "opt2", "opt3"]
