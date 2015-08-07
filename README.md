@@ -6,7 +6,7 @@ Now you can!
 ### Note
 Must mark the field as optional
 
-```
+```coffeescript
 @radioOptions = ["opt1", "opt2", "opt3"]
 
 Topics.attachSchema new SimpleSchema(
