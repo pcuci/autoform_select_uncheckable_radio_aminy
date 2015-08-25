@@ -35,14 +35,19 @@ Template.afUncheckableRadioGroup.helpers
     "data-schema-key": @atts["data-schema-key"]
 
 Template.afUncheckableRadioGroup.events
-  'click input[type=radio]': (event, template) ->
-    if template.lastValue is event.target.value
+  'click label': (event, template) ->
+    event.preventDefault()
+    selected = $(event.currentTarget.parentNode).children('input')
+    if template.lastValue is selected.val()
       if not template.lastSameChecked
-        event.target.checked = false
+        selected.prop('checked', false)
         template.lastSameChecked = true
       else
+        selected.prop('checked', true)
         template.lastSameChecked = false
-    template.lastValue = event.target.value
+    else
+      selected.prop('checked', true).change()
+    template.lastValue = selected.val()
   'change input[type=radio]': (event, template) ->
     # Reset toggle variables
     template.lastValue = undefined
@@ -61,18 +66,18 @@ addAutoFormHooks = (formId) ->
       update: (doc) ->
         # Need to unset fields that have previously been set
         ss = AutoForm.getFormSchema(formId)
-        UncheckableRadioFieldKeys = []
+        uncheckableRadioFieldKeys = []
         # Find all fields of type select-uncheckable-radio
         _.each(ss._schemaKeys, (key) ->
           if ss._schema[key].autoform?.type is "select-uncheckable-radio"
-            UncheckableRadioFieldKeys.push(key)
+            uncheckableRadioFieldKeys.push(key)
         )
         doc.$unset = {}
-        _.each(UncheckableRadioFieldKeys, (key) ->
+        _.each(uncheckableRadioFieldKeys, (key) ->
           # Only unset undefined fields, i.e.: select-uncheckable-radio types which have just been unselected
           if not doc.$set[key]
             doc.$unset[key] = ""
         )
         @.result(doc)
 
-Template.afUncheckableRadioGroup.copyAs('afUncheckableRadioGroup_bootstrap3');
+Template.afUncheckableRadioGroup.copyAs('afUncheckableRadioGroup_materialize');
