@@ -1,5 +1,5 @@
 <template name="afUncheckableRadioGroup">
-  <div class="af-uncheck-radio-group" {{dsk}}>
+  <div class="af-uncheck-radio-group {{active}}" {{dsk}}>
     {{#each this.items}}
     <p>
       <input type="radio" value="{{this.value}}" {{atts}} />

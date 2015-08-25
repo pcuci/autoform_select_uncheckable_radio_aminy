@@ -33,12 +33,18 @@ Template.afUncheckableRadioGroup.helpers
     atts
   dsk: dsk = ->
     "data-schema-key": @atts["data-schema-key"]
+  active: ->
+    console.log("lastValue: ", Template.instance().lastValue.get())
+    if Template.instance().lastValue.get()
+      'active'
+    else
+      ''
 
 Template.afUncheckableRadioGroup.events
   'click label': (event, template) ->
     event.preventDefault()
     selected = $(event.currentTarget.parentNode).children('input')
-    if template.lastValue is selected.val()
+    if template.lastValue.get() is selected.val()
       if not template.lastSameChecked
         selected.prop('checked', false)
         template.lastSameChecked = true
@@ -47,14 +53,22 @@ Template.afUncheckableRadioGroup.events
         template.lastSameChecked = false
     else
       selected.prop('checked', true).change()
-    template.lastValue = selected.val()
+    console.log('selectedVal', selected.val())
+    if selected.is(':checked')
+      console.log("is checked")
+      template.lastValue.set(undefined) # Cheat to reactively .get() same value
+      template.lastValue.set(selected.val())
+    else
+      console.log("is NOT checked")
+      template.lastValue.set(undefined)
   'change input[type=radio]': (event, template) ->
     # Reset toggle variables
-    template.lastValue = undefined
+    template.lastValue.set(undefined)
     template.lastSameChecked = false
 
 Template.afUncheckableRadioGroup.created = ->
-  @lastValue = @data.value # On created, consider the radio just got selected
+  @lastValue = new ReactiveVar()
+  @lastValue.set(@data.value) # On created, consider the radio just got selected
   @lastSameChecked = false
 
 Template.afUncheckableRadioGroup.rendered = ->
