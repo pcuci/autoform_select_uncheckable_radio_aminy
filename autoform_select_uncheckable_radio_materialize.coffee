@@ -39,6 +39,26 @@ Template.afUncheckableRadioGroup.helpers
       'active'
     else
       ''
+  higherSelected: (currentItem) ->
+    console.log("currentItem", currentItem)
+    console.log('lastvalue', Template.instance().lastValue.get())
+    if Template.instance().lastValue.get()
+      items = Template.instance().data.items
+      higherSelected = ''
+      foundSelf = false
+      passedSelected = false
+      _.each(_.clone(items).reverse(), (item) ->
+        if passedSelected and (item is currentItem)
+          foundSelf = true
+        if item.value is Template.instance().lastValue.get()
+          passedSelected = true
+        if foundSelf and passedSelected
+          higherSelected = "higherSelected"
+      )
+      higherSelected
+    else
+      # Nothing selected, use parent class to style
+      ''
 
 Template.afUncheckableRadioGroup.events
   'click label': (event, template) ->
