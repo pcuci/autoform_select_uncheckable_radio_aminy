@@ -3,7 +3,7 @@
 Package.describe({
     name: 'pcuci:autoform-select-uncheckable-radio-aminy',
     summary: 'Materialize based radio buttons that can be unselected for Aminy',
-    version: '0.0.2',
+    version: '0.0.3',
     github: 'https://github.com/pcuci/autoform_select_uncheckable_radio_aminy.git'
 });
 
@@ -22,8 +22,8 @@ Package.onUse(function(api) {
     ], 'client');
 
     api.addFiles([
-      'autoform_select_uncheckable_radio_materialize.html',
-      'autoform_select_uncheckable_radio_materialize.coffee',
+      'autoform_select_uncheckable_radio_aminy.html',
+      'autoform_select_uncheckable_radio_aminy.coffee',
       'autoform_select_uncheckable_radio_aminy.scss'
     ], 'client');
 });
