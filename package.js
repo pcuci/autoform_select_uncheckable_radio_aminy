@@ -22,7 +22,6 @@ Package.onUse(function(api) {
 
     api.addFiles([
       'autoform_select_uncheckable_radio_aminy.html',
-      'autoform_select_uncheckable_radio_aminy.coffee',
-      'autoform_select_uncheckable_radio_aminy.scss'
+      'autoform_select_uncheckable_radio_aminy.coffee'
     ], 'client');
 });
