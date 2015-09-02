@@ -1,10 +1,16 @@
 <template name="afUncheckableRadioGroup">
   <div class="af-uncheck-radio-group {{active}}" {{dsk}}>
-    {{#each this.items}}
-      <p class="{{higherSelected this}}">
-        <input type="radio" value="{{this.value}}" {{atts}}/>
-        <label for="{{atts.id}}">{{this.label}}</label>
+    {{#if isActive}}
+      {{#each this.items}}
+        <p class="{{higherSelected this}}">
+          <input type="radio" value="{{this.value}}" {{atts}}/>
+          <label for="{{atts.id}}"><span class="spanText {{this.value}}Label">{{this.label}}</span></label>
+        </p>
+      {{/each}}
+    {{else}}
+      <p class="fieldLabel">
+        <label>{{this.label}}</label>
       </p>
-    {{/each}}
+    {{/if}}
   </div>
 </template>
