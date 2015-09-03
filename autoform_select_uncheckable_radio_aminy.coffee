@@ -1,25 +1,38 @@
 AutoForm.addInputType "select-uncheckable-radio",
   template: "afUncheckableRadioGroup"
   valueOut: ->
+    console.log("VALUE OUT ------------ VALUE OUT, this", @)
+    console.log("VALUE OUT ------------ VALUE OUT", @find("input[type=radio]:checked").val())
     @find("input[type=radio]:checked").val()
 
   contextAdjust: (context) ->
     console.log("context", context)
-    console.log("this", Template.instance())
+    console.log("this.data", Template.currentData())
     ss = AutoForm.getFormSchema()
     console.log("ss", ss._schema[context.name].label)
 
-    context.label = ss._schema[context.name].label
+    label = ss._schema[context.name].label
+    # Split on new lines to 3 different lines
+    lines = label.split("\n")
+    context.firstLine = if lines[0] then lines[0] else ""
+    context.firstSubLine = if lines[1] then lines[1] else ""
+    context.secondSubLine = if lines[2] then lines[2] else ""
     itemAtts = _.omit(context.atts)
+    console.log("itemAtts", itemAtts)
 
     context.items = []
-    console.log('value', context.value)
     # Add all defined options
     firstPass = true
     _.each context.selectOptions, (opt) ->
+      lines = opt.label.split("\n")
+      firstLine = if lines[0] then lines[0] else ""
+      firstSubLine = if lines[1] then lines[1] else ""
+      secondSubLine = if lines[2] then lines[2] else ""
       context.items.push
         name: context.name
-        label: opt.label
+        firstLine: firstLine
+        firstSubLine: firstSubLine
+        secondSubLine: secondSubLine
         value: opt.value
 
         # _id must be included because it is a special property that
@@ -31,36 +44,85 @@ AutoForm.addInputType "select-uncheckable-radio",
     context
 
 Template.afUncheckableRadioGroup.helpers
-  atts: selectedAttsAdjust = ->
+  atts: ->
     atts = _.clone(@atts)
+
     atts.checked = "" if @selected
 
+    if @selected
+      console.log("Selected -------------------", @selected)
     # Remove data-schema-key attribute because we put it on the entire group
     delete atts["data-schema-key"]
-
+    console.log("atts", atts)
     atts
-  dsk: dsk = ->
+  dsk: ->
     "data-schema-key": @atts["data-schema-key"]
   active: ->
-    if Template.instance().lastValue.get()
+    if Template.currentData().currentValue?.get()
       'active'
     else
       ''
   isActive: ->
-    if Template.instance().lastValue.get()
+    if Template.currentData().currentValue?.get()
       true
     else
       false
+
+Template.afUncheckableRadioGroup.events
+  'click input + label': (event, template) ->
+    console.log("tmpl data:", template.data)
+    event.preventDefault()
+    selected = $(event.currentTarget.parentNode).children('input')
+    console.log("selected value: ", selected.val())
+    template.data.currentValue.set(undefined)
+    template.data.currentValue.set(selected.val())
+    if template.data.lastValue.get() is selected.val()
+      if not template.data.lastSameChecked
+        selected.prop('checked', false)
+        template.data.lastSameChecked = true
+        template.data.currentValue.set(undefined)
+      else
+        selected.prop('checked', true)
+        template.data.lastSameChecked = false
+    else
+      selected.prop('checked', true).change()
+    if selected.is(':checked')
+      template.data.lastValue.set(undefined) # Cheat to reactively .get() same value
+      template.data.lastValue.set(selected.val())
+    else
+      template.data.lastValue.set(undefined)
+  'change input[type=radio]': (event, template) ->
+    console.log("changed!!!!!!!!!changed!!!!!!!!!changed!!!!!!!!!changed!!!!!!!!!changed!!!!!!!!!")
+    # Reset toggle variables
+    template.data.lastValue.set(undefined)
+    template.data.lastSameChecked = false
+  'click p.fieldLabel': (event, template) ->
+    template.data.value = template.data.items[0].value
+    console.log("currentValue", template.data.currentValue.get())
+    template.data.currentValue.set(template.data.items[0].value)
+    template.data.lastValue.set(undefined)
+    template.data.lastSameChecked = false
+    console.log("lastValue", template.data.lastValue.get())
+    console.log("currentValue", template.data.currentValue.get())
+
+Template.afUncheckableRadioGroupActiveRadio.helpers
   higherSelected: (currentItem) ->
-    if Template.instance().lastValue.get()
-      items = Template.instance().data.items
+    # console.log("currentData(): ", Template.currentData())
+    # console.log("parentData(0): ", Template.parentData(0))
+    # console.log("parentData(1): ", Template.parentData(1))
+    # console.log("parentData(2): ", Template.parentData(2))
+    if Template.parentData().currentValue?.get()
+      console.log("currentValue in higherSelected", Template.parentData(1).currentValue.get())
+
+    if Template.parentData(1).currentValue?.get()
+      items = Template.parentData(1).items
       higherSelected = ''
       foundSelf = false
       passedSelected = false
       _.each(_.clone(items).reverse(), (item) ->
         if passedSelected and (item is currentItem)
           foundSelf = true
-        if item.value is Template.instance().lastValue.get()
+        if item.value is Template.parentData(1).lastValue.get()
           passedSelected = true
         if foundSelf and passedSelected
           higherSelected = "higherSelected"
@@ -69,40 +131,23 @@ Template.afUncheckableRadioGroup.helpers
     else
       # Nothing selected, use parent class to style
       ''
+Template.afUncheckableRadioGroupActiveRadios.rendered = ->
+  console.log("Active Radios rendered =------------------------------------             xxxx")
+  console.log("this afUncheckableRadioGroupActiveRadios", this)
+  $(@find('input[type=radio]')).prop('checked', true).change()
+  console.log("checked?", @find('input[type=radio]'))
+  console.log("parentData() - activeradios", Template.parentData(0))
+  Template.parentData(0).value = Template.parentData(0).items[0].value
+  Template.parentData(0).currentValue.set(undefined)
+  Template.parentData(0).currentValue.set(Template.parentData(0).items[0].value)
+  console.log("parentData() - activeradios", Template.parentData(0))
 
-Template.afUncheckableRadioGroup.events
-  'click input + label': (event, template) ->
-    console.log("clicked label")
-    event.preventDefault()
-    selected = $(event.currentTarget.parentNode).children('input')
-    if template.lastValue.get() is selected.val()
-      if not template.lastSameChecked
-        selected.prop('checked', false)
-        template.lastSameChecked = true
-      else
-        selected.prop('checked', true)
-        template.lastSameChecked = false
-    else
-      selected.prop('checked', true).change()
-    if selected.is(':checked')
-      template.lastValue.set(undefined) # Cheat to reactively .get() same value
-      template.lastValue.set(selected.val())
-    else
-      template.lastValue.set(undefined)
-  'change input[type=radio]': (event, template) ->
-    # Reset toggle variables
-    template.lastValue.set(undefined)
-    template.lastSameChecked = false
-  'click p.fieldLabel': (event, template) ->
-    console.log("clicked first option")
-    console.log('data', template.data)
-    template.data.value = template.data.items[0].value
-    template.lastValue.set(template.data.value)
 
 Template.afUncheckableRadioGroup.created = ->
-  @lastValue = new ReactiveVar()
-  @lastValue.set(@data.value) # On created, consider the radio just got selected
-  @lastSameChecked = false
+  @data.lastValue = new ReactiveVar(@data.value) # On created, consider the radio just got selected
+  @data.currentValue = new ReactiveVar(@data.value)
+  @data.lastSameChecked = false
+  console.log("this -- created:", @)
 
 Template.afUncheckableRadioGroup.rendered = ->
   addAutoFormHooks(AutoForm.getFormId())
@@ -111,6 +156,8 @@ addAutoFormHooks = (formId) ->
   AutoForm.addHooks formId,
     before:
       update: (doc) ->
+        console.log("                       --- before updateDOC", doc)
+        console.log("                       >>> Field valu", AutoForm.getFieldValue())
         # Need to unset fields that have previously been set
         ss = AutoForm.getFormSchema(formId)
         uncheckableRadioFieldKeys = []
@@ -128,6 +175,9 @@ addAutoFormHooks = (formId) ->
         @.result(doc)
 
 Template.afUncheckableRadioGroup.copyAs('afUncheckableRadioGroup_materialize');
+#Template.afUncheckableRadioGroupActiveRadios.copyAs('afUncheckableRadioGroupActiveRadios_materialize');
+#Template.afUncheckableRadioGroupActiveRadio.copyAs('afUncheckableRadioGroupActiveRadio_materialize');
+
 
 Template.autoForm.onRendered(->
   # console.log("in autoform rendered")
